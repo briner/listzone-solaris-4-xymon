@@ -1,0 +1,145 @@
+#!/usr/bin/python
+
+# TODO: put a time cache for the data, if not refreshed than it is killed
+
+import sys, os
+import re
+import pickle
+
+DEBUG=0
+RE_DATA_HEADER=re.compile("data (?P<hostname>\S+)\.unige\.ch.listzone")
+FN_LISTZONE='/usr/local/hobbit/server/www/listzone.txt'
+FN_PICKLE='/usr/local/hobbit/data/data/listzone.pickle'
+
+def getSizeOfList(l):
+   return map(lambda x:len(x), l)
+
+def listlist2nicestr(ll):
+   outputFormat=[]
+   if list != type(ll):
+      return 'this is not a list'
+   if len(ll)==0:
+      return ''
+   for i in range(len(ll)):
+      if list != type(ll[i]):
+         return 'this list in not constitued of list'
+      #lelem=lelem+ll[i]
+      if 0 == i:
+         refSizeList=getSizeOfList(ll[i])
+         refLenList=len(ll[i])
+      else:
+         if refLenList != len(ll[i]):
+            return 'error all the list should be the same lenght'
+         sizeList=getSizeOfList(ll[i])
+         for j in range(refLenList):
+            if refSizeList[j]< sizeList[j]:
+               refSizeList[j] = sizeList[j]
+   outputFormatLine=u' '.join( map(lambda x:"%-"+unicode(x)+'s', refSizeList) )
+   output=u''
+   for l in ll:
+      try:
+         output+=outputFormatLine%tuple(l)+u'\n'
+      except UnicodeDecodeError, qq:
+         print str(type(output)), output
+         print l
+         print str(type (l[1])),  l[1]
+         print str(type (ll[13][1][0])), ll[13][1][0]
+         raise qq
+   return output
+
+def cmpAlphaNum(str1,str2):
+   str1=str1.lower()
+   str2=str2.lower()
+   ReSplit='(\d+)'
+   str1=re.split(ReSplit,str1)
+   str2=re.split(ReSplit,str2)
+   if( ''==str1[0] ):
+      str1.remove('')
+   if( ''==str1[len(str1)-1] ):
+      str1.remove('')
+   if( ''==str2[0] ):
+      str2.remove('')
+   if( ''==str2[len(str2)-1] ):
+      str2.remove('')
+   for i in range( min( len(str1),len(str2) ) ):
+      try:
+         tmp=int(str1[i])
+         str1[i]=tmp
+      except:ValueError
+      try:
+         tmp=int(str2[i])
+         str2[i]=tmp
+      except:ValueError
+      if( str1[i]==str2[i] ):
+         continue
+      if (str1[i]>str2[i]):
+         return 1
+      else:
+         return -1
+   return cmp(len(str1),len(str2))
+
+def save_dhost_lzone(dhost_lzone):
+  fd=open(FN_PICKLE, 'w')
+  pickle.dump(dhost_lzone, fd)
+  fd.close()
+
+def load_dhost_lzone():
+  try:
+    fd=open(FN_PICKLE, 'r')
+    ret=pickle.load(fd)
+    fd.close()
+  except:
+    ret={}
+  return ret
+
+def generate_texte(dhost_lzone):
+  lkeys=dhost_lzone.keys()
+  lkeys.sort(cmpAlphaNum)
+  lret=[]
+  for hostname in lkeys:
+    lret.append(hostname)
+    lret=lret+listlist2nicestr(dhost_lzone[hostname]).split('\n')
+  return '\n'.join(lret)
+
+
+dhost_lzone=load_dhost_lzone()
+fd=open(FN_LISTZONE, 'w')
+fd.write(generate_texte(dhost_lzone))
+fd.close()
+del fd
+
+line=sys.stdin.readline()
+while line:
+  line=line.rstrip()
+  line=sys.stdin.readline()
+  match=RE_DATA_HEADER.match(line)
+  if not match:
+    continue
+  else:
+    sys.stdout.flush()
+    hostname=match.groupdict()['hostname']
+    line=sys.stdin.readline()
+    line.rstrip()
+    lzone=[]
+    while line:
+      line=line.rstrip()
+      lzone.append(line.split(':'))
+      line=sys.stdin.readline()
+      line=line.rstrip()
+    if lzone != dhost_lzone.get(hostname) :
+      dhost_lzone[hostname]=lzone
+      fd=open(FN_LISTZONE, 'w')
+      fd.write(generate_texte(dhost_lzone))
+      fd.close()
+      del fd
+      save_dhost_lzone(dhost_lzone)
+    if DEBUG:
+      print 'hostname :', hostname
+      print 'lzone :', lzone
+      print '-------------------'
+      print generate_texte(dhost_lzone)
+      sys.stdout.flush()
+    line=sys.stdin.readline()
+
+#print "je suis dehors"
+

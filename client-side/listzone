@@ -1,0 +1,27 @@
+#!/usr/bin/bash
+
+# echo bb: ${BB}
+#   bb: /usr/local/hobbit/client/bin/bb
+# echo bbdisp: ${BBDISP}
+#   bbdisp: 0.0.0.0 # all right if only one server
+# echo machine: ${MACHINE}
+#   machine: amazone2,unige,ch
+# echo bbdisp : ip machine
+# echo machine: amazone4,unige,ch
+
+
+# for debugging purpose
+if [[ ${DEBUG:-0} -ne 0 ]] ; then
+  echo BB: ${BB}
+  echo BBDISP: ${BBDISP}
+  echo MACHINE: ${MACHINE}
+fi
+
+myhostname=$(hostname)
+(
+  echo "data ${myhostname}.listzone" ;
+  /usr/sbin/zoneadm list -p
+) | ${BB} ${BBDISP} "@"
+
+
+exit 0

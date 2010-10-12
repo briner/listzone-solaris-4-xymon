@@ -1,0 +1,30 @@
+ON SERVER SIDE
+--------------
+copy ./server-side/compile_listzone <hobbit_server>/ext/
+chmod a+x <hobbit_server>/ext/listzone
+
+add line to <hobbit_server>/etc/hobbitlaunch.cfg
+[listzone]
+        ENVFILE /usr/local/hobbit/server/etc/hobbitserver.cfg
+        NEEDS hobbitd
+        CMD hobbitd_channel --channel=data --log=$BBSERVERLOGS/listzone.log /usr/local/hobbit/server/ext/compile_listzone
+
+/etc/init.d/hobbit restart
+
+
+ON CLIENT SIDE
+--------------
+copy ./client-side/listzone <hobbit_client>/ext/
+chmod a+x <hobbit_client>/ext/listzone
+chown hobbit:hobbit <hobbit_client>/ext/listzone
+
+add line to <hobbit_client>/etc/clientlaunch.cfg
+[listzone]
+        ENVFILE $HOBBITCLIENTHOME/etc/hobbitclient.cfg
+        CMD $HOBBITCLIENTHOME/ext/listzone
+        LOGFILE $HOBBITCLIENTHOME/logs/listzone.log
+        INTERVAL 5m
+
+/etc/init.d/hobbit restart
+
+
