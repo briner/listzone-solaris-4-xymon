@@ -1,18 +1,40 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # TODO: put a time cache for the data, if not refreshed than it is killed
 
 import sys, os
 import re
 import pickle
+import datetime
+import codecs
 
 DEBUG=0
 RE_DATA_HEADER=re.compile("data (?P<hostname>\S+)\.unige\.ch.listzone")
-FN_LISTZONE='/usr/local/hobbit/server/www/listzone.txt'
+FN_LISTZONE='/usr/local/hobbit/server/www/listzone.txt.utf8'
 FN_PICKLE='/usr/local/hobbit/data/data/listzone.pickle'
 
 def getSizeOfList(l):
    return map(lambda x:len(x), l)
+
+def getFrenchDate(date=None):
+   ''' usage: getFrenchDate(date=today)
+              type of date : datetime.date
+              if date=None, then date=today
+   '''
+   import datetime
+   if date == None:
+      date=datetime.date.today()
+   lmonth=[u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
+   return unicode(date.day)+u' '+lmonth[date.month-1]+u' '+unicode(date.year)
+
+def getFrenchDateTime(mydatetime=None):
+   import datetime
+   if mydatetime == None:
+      mydatetime=datetime.datetime.now()
+   ret=u'le %s à %s' % (getFrenchDate(mydatetime.date())
+                         ,mydatetime.strftime('%Hh%M'))
+   return ret
 
 def listlist2nicestr(ll):
    outputFormat=[]
@@ -78,12 +100,12 @@ def cmpAlphaNum(str1,str2):
          return -1
    return cmp(len(str1),len(str2))
 
-def save_dhost_lzone(dhost_lzone):
+def save_dhost(dhost):
   fd=open(FN_PICKLE, 'w')
-  pickle.dump(dhost_lzone, fd)
+  pickle.dump(dhost, fd)
   fd.close()
 
-def load_dhost_lzone():
+def load_dhost():
   try:
     fd=open(FN_PICKLE, 'r')
     ret=pickle.load(fd)
@@ -92,19 +114,19 @@ def load_dhost_lzone():
     ret={}
   return ret
 
-def generate_texte(dhost_lzone):
-  lkeys=dhost_lzone.keys()
+def generate_texte(dhost):
+  lkeys=dhost.keys()
   lkeys.sort(cmpAlphaNum)
   lret=[]
   for hostname in lkeys:
-    lret.append(hostname)
-    lret=lret+listlist2nicestr(dhost_lzone[hostname]).split('\n')
+    lret.append(hostname+u' '+getFrenchDateTime(dhost[hostname]['datetime']))
+    lret=lret+listlist2nicestr(dhost[hostname]['lzone']).split('\n')
   return '\n'.join(lret)
 
 
-dhost_lzone=load_dhost_lzone()
-fd=open(FN_LISTZONE, 'w')
-fd.write(generate_texte(dhost_lzone))
+dhost=load_dhost()
+fd=codecs.open(FN_LISTZONE, 'w', encoding='utf-8')
+fd.write(generate_texte(dhost))
 fd.close()
 del fd
 
@@ -126,18 +148,26 @@ while line:
       lzone.append(line.split(':'))
       line=sys.stdin.readline()
       line=line.rstrip()
-    if lzone != dhost_lzone.get(hostname) :
-      dhost_lzone[hostname]=lzone
-      fd=open(FN_LISTZONE, 'w')
-      fd.write(generate_texte(dhost_lzone))
+      if not dhost.get(hostname):
+         dhost[hostname]={}
+      # regenerate the webpage
+      dhost[hostname]['datetime']=datetime.datetime.now()
+      dhost[hostname]['lzone']=lzone
+      fd=codecs.open(FN_LISTZONE, 'w', encoding='utf-8')
+      french_datetime=getFrenchDateTime()
+      fd.write (french_datetime+os.linesep)
+      fd.write('-'*len(french_datetime)+os.linesep)
+      fd.write(generate_texte(dhost))
       fd.close()
       del fd
-      save_dhost_lzone(dhost_lzone)
+      # pickle the data
+      save_dhost(dhost)
     if DEBUG:
       print 'hostname :', hostname
-      print 'lzone :', lzone
+      print 'datetime :', dhost[hostname]['datetime']
+      print 'lzone :', dhost[hostname]['lzone']
       print '-------------------'
-      print generate_texte(dhost_lzone)
+      print generate_texte(dhost)
       sys.stdout.flush()
     line=sys.stdin.readline()
 
