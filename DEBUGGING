@@ -1,0 +1,4 @@
+rm /usr/local/hobbit/data/data/listzone.pickle
+rm /usr/local/hobbit/server/www/listzone.txt.utf8
+
+/usr/local/hobbit/server/bin//hobbitd_channel --channel=data /usr/local/hobbit/server/ext/compile_listzone
