@@ -12,10 +12,9 @@ import codecs
 DEBUG=0
 RE_DATA_HEADER=re.compile("data (?P<hostname>\S+)\.unige\.ch.listzone")
 FN_LISTZONE='/usr/local/hobbit/server/www/listzone.txt.utf8'
+#FN_LISTZONE='/home/briner/git/listzone-solaris-4-xymon/server-side/listzone.txt.utf8'
 FN_PICKLE='/usr/local/hobbit/data/data/listzone.pickle'
-
-def getSizeOfList(l):
-   return map(lambda x:len(x), l)
+#FN_PICKLE='/home/briner/git/listzone-solaris-4-xymon/server-side/listzone.pickle'
 
 def getFrenchDate(date=None):
    ''' usage: getFrenchDate(date=today)
@@ -36,27 +35,32 @@ def getFrenchDateTime(mydatetime=None):
                          ,mydatetime.strftime('%Hh%M'))
    return ret
 
-def listlist2nicestr(ll):
-   outputFormat=[]
+def getSizeOfList(l):
+   return map(lambda x:len(x), l)
+
+def listlist2size(ll, lsize=[]):
    if list != type(ll):
-      return 'this is not a list'
+      return 'this listlist is not a list'
    if len(ll)==0:
-      return ''
-   for i in range(len(ll)):
-      if list != type(ll[i]):
+      return lsize
+   if not lsize:
+      lsize=getSizeOfList(ll[0])
+   for l in ll:
+      if list != type(l):
          return 'this list in not constitued of list'
-      #lelem=lelem+ll[i]
-      if 0 == i:
-         refSizeList=getSizeOfList(ll[i])
-         refLenList=len(ll[i])
-      else:
-         if refLenList != len(ll[i]):
-            return 'error all the list should be the same lenght'
-         sizeList=getSizeOfList(ll[i])
-         for j in range(refLenList):
-            if refSizeList[j]< sizeList[j]:
-               refSizeList[j] = sizeList[j]
-   outputFormatLine=u' '.join( map(lambda x:"%-"+unicode(x)+'s', refSizeList) )
+      if len (l) != len (lsize):
+         return 'error all the list should be the same lenght'
+      ltmpsize=getSizeOfList(l)
+      for i in range(len(lsize)):
+         if lsize[i] < ltmpsize[i]:
+            lsize[i] = ltmpsize[i]
+   return lsize
+
+def listlist2nicestr(ll, lsize=[]):
+   if not lsize:
+      lsize=listlist2size(ll)
+   outputFormat=[]
+   outputFormatLine=u' '.join( map(lambda x:"%-"+unicode(x)+'s', lsize) )
    output=u''
    for l in ll:
       try:
@@ -118,9 +122,13 @@ def generate_texte(dhost):
   lkeys=dhost.keys()
   lkeys.sort(cmpAlphaNum)
   lret=[]
+  lsize=[]
+  for hostname in lkeys:
+    lnsize=listlist2size(dhost[hostname]['lzone'],  lsize=lsize)
+    lsize=lnsize
   for hostname in lkeys:
     lret.append(hostname+u' '+getFrenchDateTime(dhost[hostname]['datetime']))
-    lret=lret+listlist2nicestr(dhost[hostname]['lzone']).split('\n')
+    lret=lret+listlist2nicestr(dhost[hostname]['lzone'], lsize=lsize).split('\n')
   return '\n'.join(lret)
 
 

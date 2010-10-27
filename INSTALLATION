@@ -23,7 +23,7 @@ add line to <hobbit_client>/etc/clientlaunch.cfg
         ENVFILE $HOBBITCLIENTHOME/etc/hobbitclient.cfg
         CMD $HOBBITCLIENTHOME/ext/listzone
         LOGFILE $HOBBITCLIENTHOME/logs/listzone.log
-        INTERVAL 5m
+        INTERVAL 30m
 
 /etc/init.d/hobbit restart
 
