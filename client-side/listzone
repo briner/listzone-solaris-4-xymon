@@ -20,7 +20,7 @@ fi
 myhostname=$(hostname)
 (
   echo "data ${myhostname}.listzone" ;
-  /usr/sbin/zoneadm list -pc
+  /usr/sbin/zoneadm list -pi
 ) | ${BB} ${BBDISP} "@"
 
 
