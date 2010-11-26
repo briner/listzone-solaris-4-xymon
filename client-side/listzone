@@ -12,16 +12,16 @@
 
 # for debugging purpose
 if [[ ${DEBUG:-0} -ne 0 ]] ; then
-  echo BB=${BB}
-  echo BBDISP=${BBDISP}
-  echo MACHINE=${MACHINE}
+  echo BB: ${BB}
+  echo BBDISP: ${BBDISP}
+  echo MACHINE: ${MACHINE}
 fi
 
 myhostname=$(hostname)
-{
+(
   echo "data ${myhostname}.listzone" ;
-  /usr/sbin/zoneadm list -p
-} | ${BB} ${BBDISP} "@"
+  /usr/sbin/zoneadm list -pc
+) | ${BB} ${BBDISP} "@"
 
 
 exit 0
