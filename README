@@ -39,7 +39,7 @@ it keeps info about:
 
 Notice that I didn't know how to add this in xymon, so I've modified the template
 of xymon to add a new entry on top of each xymon page as seen
-https://github.com/briner/listzone-solaris-4-xymon/doc/template-modification-screenshot.png
+https://github.com/briner/listzone-solaris-4-xymon/blob/master/doc/template-modification-screenshot.png
 
 Also remarks that the page is voluntary not an html page, but a utf8 text and
 it is displayed as so with apache. It let's you more easily to 
