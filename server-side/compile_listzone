@@ -11,10 +11,8 @@ import codecs
 
 DEBUG=0
 RE_DATA_HEADER=re.compile("data (?P<hostname>\S+)\.unige\.ch.listzone")
-FN_LISTZONE='/usr/local/hobbit/server/www/listzone.txt.utf8'
-#FN_LISTZONE='/home/briner/git/listzone-solaris-4-xymon/server-side/listzone.txt.utf8'
-FN_PICKLE='/usr/local/hobbit/data/data/listzone.pickle'
-#FN_PICKLE='/home/briner/git/listzone-solaris-4-xymon/server-side/listzone.pickle'
+FN_LISTZONE='/usr/lib/hobbit/server/www/listzone.txt.utf8'
+FN_PICKLE='/usr/lib/hobbit/server/tmp/listzone.pickle'
 
 def getFrenchDate(date=None):
    ''' usage: getFrenchDate(date=today)

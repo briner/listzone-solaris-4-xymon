@@ -1,0 +1,50 @@
+listzone-solaris-4-xymon
+is a tool letting you know which zone is on which host. All the information
+collected with this tools are displayed on one page. 
+
+e.g.
+  # le 3 mai 2011 à 11h38
+  # ---------------------
+  # amazone1 le 3 mai 2011 à 11h35
+  # 0   global           running   /                                                                             native shared
+  # 1   iquitos          running   /zones/iquitos                           8cf2b912-beff-4069-b743-8d60635fde1a native shared
+  # 2   archidoc2        running   /zones/archidoc2                         27b89c6e-1717-c58d-9060-e92817b31ab6 native shared
+  # 3   vital-test2      running   /zones/vital-test2_pool/vital-test2      0d6a61b8-d9d2-e3d9-f63a-f133c0d34133 native shared
+  # 4   portail-test1    running   /zones/portail-test1_pool/portail-test1  eab0f958-9775-cc90-e41a-cfb0cee993c2 native shared
+  # 
+  # amazone2 le 3 mai 2011 à 11h36
+  # 0   global           running   /                                                                             native shared
+  # 1   plone2           running   /zones/plone2                            b95d0068-3dcd-423a-b84a-898a9ef4666b native shared
+  # 2   synctest1        running   /zones/synctest_pool/synctest1           7664918e-802e-636f-c3a3-eba75ffcb27d native shared
+  # 3   synctest2        running   /zones/synctest_pool/synctest2           6fad7c58-b35b-6cbb-845e-b78701a8914a native shared
+  # 4   owatest1         running   /zones/owatest_pool/owatest1             a686a7a5-9198-439e-80fc-8d2c213b0658 native shared
+  # 6   owatest3         running   /zones/owatest_pool/owatest3             5c8439df-4fc5-ea60-98a0-9d9ff377e2d8 native shared
+  # 8   owa1             running   /zones/owa1                              f13bb3d2-8cfe-c7ab-ff4a-9f9b580f31dc native shared
+  # 9   sync1            running   /zones/sync1                             9345e771-4244-e175-dc25-d8dc5ba12079 native shared
+
+it keeps info about:
+ - when the page is generated (the first info)
+      # le 3 mai 2011 à 11h38 (in english :3 May 2011 at 11h38)
+      # ---------------------
+ - then for each hosting machines (the hard node) it gives
+   the name of the hosting machine, the datetime when it receives the info
+   and the ouput of "zfs list -pi"
+      # amazone1 le 3 mai 2011 à 11h35 (in english: on amazone1, the 3 may 2011 at 11h35)
+      # 0   global           running   /                                                                             native shared
+      # 1   iquitos          running   /zones/iquitos                           8cf2b912-beff-4069-b743-8d60635fde1a native shared
+      # 2   archidoc2        running   /zones/archidoc2                         27b89c6e-1717-c58d-9060-e92817b31ab6 native shared
+      # 3   vital-test2      running   /zones/vital-test2_pool/vital-test2      0d6a61b8-d9d2-e3d9-f63a-f133c0d34133 native shared
+      # 4   portail-test1    running   /zones/portail-test1_pool/portail-test1  eab0f958-9775-cc90-e41a-cfb0cee993c2 native shared
+
+
+Notice that I didn't know how to add this in xymon, so I've modified the template
+of xymon to add a new entry on top of each xymon page as seen
+https://github.com/briner/listzone-solaris-4-xymon/doc/template-modification-screenshot.png
+
+Also remarks that the page is voluntary not an html page, but a utf8 text and
+it is displayed as so with apache. It let's you more easily to 
+wget -O - http://xymon.domain.com/xymon/listzone | grep ...
+
+
+
+

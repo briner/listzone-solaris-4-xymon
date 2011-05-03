@@ -1,0 +1,136 @@
+ON SERVER SIDE
+--------------
+cp <GIT_DIR>/server-side/compile_listzone <hobbit_server>/ext/
+chmod a+x <hobbit_server>/ext/listzone
+
+#
+# tweak compile_listzone to make the configuration as needed
+FN_LISTZONE='/usr/lib/hobbit/server/www/listzone.txt.utf8'
+FN_PICKLE='/usr/lib/hobbit/server/tmp/listzone.pickle'
+
+#
+# modify the template to add a new link to listzone.txt.utf8
+# in <hobbit_server>/web/bb_header add what is between
+# <!-- begin/listzone -->
+# <!-- end/listzone -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="&HTMLCONTENTTYPE">
+<META HTTP-EQUIV="REFRESH" CONTENT="60">
+<META HTTP-EQUIV="EXPIRES" CONTENT="Sat, 01 Jan 2001 00:00:00 GMT">
+<META HTTP-EQUIV="Set-Cookie" CONTENT="pagepath=&BBPAGEPATH; path=/">
+<META HTTP-EQUIV="Set-Cookie" CONTENT="host=; path=/">
+<TITLE>&BBBACKGROUND : Xymon - Status @ &BBDATE</TITLE>
+
+<!-- Styles for the menu bar -->
+<link rel="stylesheet" type="text/css" href="&BBMENUSKIN/menu.css">
+
+<!-- The favicon image -->
+<link rel="shortcut icon" href="&BBSKIN/favicon-&BBBACKGROUND.ico">
+
+</HEAD>
+
+
+<BODY BGCOLOR="&BBBACKGROUND" BACKGROUND="&BBSKIN/bkg-&BBBACKGROUND.gif" TEXT="#D8D8BF" LINK="#00FFAA" VLINK="#FFFF44">
+
+&HOBBITMENU
+<TABLE SUMMARY="Topline" WIDTH="100%">
+<TR><TD HEIGHT=16>&nbsp;</TD></TR>  <!-- For the menu bar -->
+<TR>
+  <TD VALIGN=MIDDLE ALIGN=LEFT WIDTH="30%">
+    <FONT FACE="Arial, Helvetica" SIZE="+1" COLOR="silver"><B>&HOBBITLOGO</B></FONT>
+  </TD>
+  <TD VALIGN=MIDDLE ALIGN=CENTER WIDTH="40%">
+    <CENTER><FONT FACE="Arial, Helvetica" SIZE="+1" COLOR="silver"><B>Current Status</B></FONT></CENTER>
+  </TD>
+  <TD VALIGN=MIDDLE ALIGN=RIGHT WIDTH="30%">
+   <FONT FACE="Arial, Helvetica" SIZE="+1" COLOR="silver"><B>&BBDATE</B></FONT>
+  </TD>
+</TR>
+<!-- begin/listzone -->
+<TR>
+  <TD COLSPAN=3> <HR WIDTH="100%"><a href="/hobbit/listzone">listzone</a> </TD>
+</TR>
+<!-- end/listzone -->
+<TR>
+  <TD COLSPAN=3> <HR WIDTH="100%"> </TD>
+</TR>
+</TABLE>
+<BR>
+
+
+#
+# modify the template to add a new link to listzone.txt.utf8
+# in <hobbit_server>/web/bb2_header
+# <!-- begin/listzone -->
+# <!-- end/listzone -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="&HTMLCONTENTTYPE">
+<META HTTP-EQUIV="REFRESH" CONTENT="60">
+<META HTTP-EQUIV="EXPIRES" CONTENT="Sat, 01 Jan 2001 00:00:00 GMT">
+<TITLE>&BBBACKGROUND : Xymon - Status @ &BBDATE</TITLE>
+
+<!-- Styles for the menu bar -->
+<link rel="stylesheet" type="text/css" href="&BBMENUSKIN/menu.css">
+
+<!-- The favicon image -->
+<link rel="shortcut icon" href="&BBSKIN/favicon-&BBBACKGROUND.ico">
+
+</HEAD>
+
+<BODY BGCOLOR="&BBBACKGROUND" BACKGROUND="&BBSKIN/bkg-&BBBACKGROUND.gif" TEXT="#D8D8BF" LINK="#00FFAA" VLINK="#FFFF44">
+
+&HOBBITMENU
+<TABLE SUMMARY="Topline" WIDTH="100%">
+<TR><TD HEIGHT=16>&nbsp;</TD></TR>  <!-- For the menu bar -->
+<TR>
+  <TD VALIGN=MIDDLE ALIGN=LEFT WIDTH="30%">
+    <FONT FACE="Arial, Helvetica" SIZE="+1" COLOR="silver"><B>&HOBBITLOGO</B></FONT>
+  </TD>
+  <TD VALIGN=MIDDLE ALIGN=CENTER WIDTH="40%">
+    <CENTER><FONT FACE="Arial, Helvetica" SIZE="+1" COLOR="silver"><B>Current non-green Systems</B></FONT></CENTER>
+  </TD>
+  <TD VALIGN=MIDDLE ALIGN=RIGHT WIDTH="30%">
+   <FONT FACE="Arial, Helvetica" SIZE="+1" COLOR="silver"><B>&BBDATE</B></FONT>
+  </TD>
+</TR>
+<!-- begin/listzone -->
+<TR>
+  <TD COLSPAN=3> <HR WIDTH="100%"><a href="/hobbit/listzone">listzone</a> </TD>
+</TR>
+<!-- end/listzone -->
+<TR>
+  <TD COLSPAN=3> <HR WIDTH="100%"> </TD>
+</TR>
+</TABLE>
+<BR>
+
+#
+# in <hobbit_server>/etc/hobbitlaunch.cfg add
+[listzone]
+        ENVFILE /usr/local/hobbit/server/etc/hobbitserver.cfg
+        NEEDS hobbitd
+        CMD hobbitd_channel --channel=data --log=$BBSERVERLOGS/listzone.log /usr/local/hobbit/server/ext/compile_listzone
+#
+# restart hobbit
+/etc/init.d/hobbit restart
+
+
+ON CLIENT SIDE
+--------------
+cp <GIT_DIR>/client-side/listzone <hobbit_client>/ext/
+chmod a+x <hobbit_client>/ext/listzone
+chown hobbit:hobbit <hobbit_client>/ext/listzone
+#
+# in <hobbit_client>/etc/clientlaunch.cfg add
+[listzone]
+        ENVFILE $HOBBITCLIENTHOME/etc/hobbitclient.cfg
+        CMD $HOBBITCLIENTHOME/ext/listzone
+        LOGFILE $HOBBITCLIENTHOME/logs/listzone.log
+        INTERVAL 30m
+#
+# restart hobbit
+/etc/init.d/hobbit restart
