@@ -2,8 +2,32 @@ test 2
 
 listzone-solaris-4-xymon
 is a tool letting you know which zone is on which host. All the information
-collected with this tools are displayed on one page. 
+collected with this tools are displayed on one page.
 
+In addition, it generates also a ssh_config which will provide you autocompletion
+facility of the zone but also of the globalzone which host the zone.
+
+If you find this script useful, consider a recommendation on LinkedIn with my
+email briner@infomaniak.ch. :)
+
+----------
+SSH_CONFIG
+----------
+# this file will allow you to have an autocompletion for hostname within bash
+# copy this file as ~/.ssh/config
+# or automate it by adding to your crontab
+# 31 15 * * * wget --no-check-certificate -O ~/.ssh/config https://xymonprod/ssh_config.txt
+# the suffix -HZ will bring you to the Hosted Zone of the hostname
+# happy slogin !
+
+Host xymon-test
+HostName xymon-test
+Host xymon-test-HZ
+HostName inti
+
+--------
+LISTZONE
+--------
 e.g.
   # le 3 mai 2011 à 11h38
   # ---------------------

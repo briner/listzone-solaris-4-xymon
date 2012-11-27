@@ -17,9 +17,9 @@ if [[ ${DEBUG:-0} -ne 0 ]] ; then
   echo MACHINE: ${MACHINE}
 fi
 
-myhostname=$(hostname)
+myhostname=$(hostname | cut -d . -f1)
 (
-  echo "data ${myhostname}.listzone" ;
+  echo "data ${myhostname}.unige.ch.listzone" ;
   /usr/sbin/zoneadm list -pi
 ) | ${BB} ${BBDISP} "@"
 

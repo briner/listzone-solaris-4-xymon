@@ -8,10 +8,12 @@ import re
 import pickle
 import datetime
 import codecs
+import socket
 
 DEBUG=0
 RE_DATA_HEADER=re.compile("data (?P<hostname>\S+)\.unige\.ch.listzone")
 FN_LISTZONE='/usr/lib/hobbit/server/www/listzone.txt.utf8'
+FN_SSH_CONFIG='/usr/lib/hobbit/server/www/ssh_config.txt'
 FN_PICKLE='/usr/lib/hobbit/server/tmp/listzone.pickle'
 
 def getFrenchDate(date=None):
@@ -64,11 +66,23 @@ def listlist2nicestr(ll, lsize=[]):
       try:
          output+=outputFormatLine%tuple(l)+u'\n'
       except UnicodeDecodeError, qq:
+         print 'vvv listlist2nicestr vvv'
+         print 'outputFormatLine : ', outputFormatLine
+         print 'output_type :', str(type(output)), 'output', output
+         print 'l:' ,l
+         #print str(type (l[1])),  l[1]
+         #print str(type (ll[13][1][0])), ll[13][1][0]
+         print '^^^ listlist2nicestr ^^^'
+         raise qq
+      except TypeError, qq:
+         print 'vvv listlist2nicestr vvv'
          print str(type(output)), output
          print l
          print str(type (l[1])),  l[1]
          print str(type (ll[13][1][0])), ll[13][1][0]
+         print '^^^ listlist2nicestr ^^^'
          raise qq
+
    return output
 
 def cmpAlphaNum(str1,str2):
@@ -89,11 +103,11 @@ def cmpAlphaNum(str1,str2):
       try:
          tmp=int(str1[i])
          str1[i]=tmp
-      except:ValueError
+      except: ValueError
       try:
          tmp=int(str2[i])
          str2[i]=tmp
-      except:ValueError
+      except: ValueError
       if( str1[i]==str2[i] ):
          continue
       if (str1[i]>str2[i]):
@@ -126,19 +140,55 @@ def generate_texte(dhost):
     lsize=lnsize
   for hostname in lkeys:
     lret.append(hostname+u' '+getFrenchDateTime(dhost[hostname]['datetime']))
-    lret=lret+listlist2nicestr(dhost[hostname]['lzone'], lsize=lsize).split('\n')
+    try:
+        lret=lret+listlist2nicestr(dhost[hostname]['lzone'], lsize=lsize).split('\n')
+    except Exception, qq:
+        print 'vvvv generate_texte vvv'
+        print 'hostname', hostname
+        print dhost[hostname]['lzone']
+        print '^^^ generate_texte ^^^'
+        raise qq
   return '\n'.join(lret)
 
 
 dhost=load_dhost()
-fd=codecs.open(FN_LISTZONE, 'w', encoding='utf-8')
-fd.write(generate_texte(dhost))
-fd.close()
-del fd
+codecs.open(FN_LISTZONE, 'w', encoding='utf-8').write(generate_texte(dhost))
+
+def write_ssh_config(dhost):
+    lret=[]
+    lret.append('# this file will allow you to have an autocompletion for hostname within bash')
+    lret.append('# copy this file as ~/.ssh/config')
+    lret.append('# or automate it by adding to your crontab')
+    lret.append('# 31 15 * * * wget --no-check-certificate -O ~/.ssh/config https://xymonprod/ssh_config.txt')
+    lret.append('# the suffix -HZ will bring you to the Hosted Zone of the hostname')
+    lret.append('# happy slogin !')
+    lret.append('')
+    for physical_server, datetime_llzone in dhost.iteritems():
+        lzone=datetime_llzone['lzone']
+        for lzone_elem in lzone:
+            if lzone_elem[0]=='0':
+                continue
+            hostname=lzone_elem[1]
+            lret.append('Host %s' % hostname)
+            lret.append('HostName %s' % hostname)
+            lret.append('Host %s-HZ' % hostname)
+            lret.append('HostName %s' % physical_server)
+            hostname_mgt=hostname+'-mgt'
+            try:
+                ip=socket.gethostbyname(hostname_mgt)
+            except:
+                ip=''
+            if ip:
+                lret.append('Host %s' % hostname_mgt)
+                lret.append('HostName %s' % hostname_mgt)
+    open(FN_SSH_CONFIG, 'w').write('\n'.join(lret))
 
 line=sys.stdin.readline()
+#fd_channel=open('/tmp/listzone_channel.out','w')
 while line:
+  #fd_channel.write(line)
   line=line.rstrip()
+  #print "<", line
   line=sys.stdin.readline()
   match=RE_DATA_HEADER.match(line)
   if not match:
@@ -149,31 +199,46 @@ while line:
     line=sys.stdin.readline()
     line.rstrip()
     lzone=[]
-    while line:
+    #
+    #read the section for this host, which finisched by a ^@@$ 
+    while line!="@@":
       line=line.rstrip()
-      lzone.append(line.split(':'))
+      if line:
+          lzone_elem=line.split(':')
+          #hack: because in old version of solaris "zoneadm list -pi" provides:
+          #  "0:global:running:/" with 4 fields
+          # instead of
+          #  "0:global:running:/::native:shared" with 7 fields
+          if len(lzone_elem) == 7:
+              lzone_elem=lzone_elem+['','']
+          lzone.append(lzone_elem)
       line=sys.stdin.readline()
       line=line.rstrip()
-      if not dhost.get(hostname):
-         dhost[hostname]={}
-      # regenerate the webpage
-      dhost[hostname]['datetime']=datetime.datetime.now()
-      dhost[hostname]['lzone']=lzone
-      fd=codecs.open(FN_LISTZONE, 'w', encoding='utf-8')
-      french_datetime=getFrenchDateTime()
-      fd.write (french_datetime+os.linesep)
-      fd.write('-'*len(french_datetime)+os.linesep)
-      fd.write(generate_texte(dhost))
-      fd.close()
-      del fd
-      # pickle the data
-      save_dhost(dhost)
+    if not dhost.get(hostname):
+       dhost[hostname]={}
+    # regenerate the webpage
+    dhost[hostname]['datetime']=datetime.datetime.now()
+    dhost[hostname]['lzone']=lzone
+    fd=codecs.open(FN_LISTZONE, 'w', encoding='utf-8')
+    french_datetime=getFrenchDateTime()
+    fd.write (french_datetime+os.linesep)
+    fd.write('-'*len(french_datetime)+os.linesep)
+    fd.write(generate_texte(dhost))
+    fd.close()
+    del fd
+    # write ssh_config
+    write_ssh_config(dhost)
+    # pickle the data
+    save_dhost(dhost)
     if DEBUG:
       print 'hostname :', hostname
       print 'datetime :', dhost[hostname]['datetime']
-      print 'lzone :', dhost[hostname]['lzone']
+      print 'lzone :'
+      for zone in dhost[hostname]['lzone']:
+          print '',
+          print zone
       print '-------------------'
-      print generate_texte(dhost)
+      #print generate_texte(dhost)
       sys.stdout.flush()
     line=sys.stdin.readline()
 
