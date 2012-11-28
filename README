@@ -1,4 +1,4 @@
-listzone-solaris-4-xymon
+listzone-solaris-4-xymon (or zoneadm list for xymon)
 ========================
 is a tool letting you know which zone is on which host. All the information
 collected with this tools are displayed on one page.
